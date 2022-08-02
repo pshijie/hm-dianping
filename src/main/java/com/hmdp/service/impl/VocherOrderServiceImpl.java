@@ -8,8 +8,10 @@ import com.hmdp.mapper.VoucherOrderMapper;
 import com.hmdp.service.ISeckillVoucherService;
 import com.hmdp.service.IVoucherOrderService;
 import com.hmdp.utils.RedisIdWorker;
+import com.hmdp.utils.SimpleRedisLock;
 import com.hmdp.utils.UserHolder;
 import org.springframework.aop.framework.AopContext;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,6 +31,8 @@ public class VocherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vouc
     private ISeckillVoucherService seckillVoucherService;
     @Resource
     private RedisIdWorker redisIdWorker;
+    @Resource
+    private StringRedisTemplate stringRedisTemplate;
 
     /**
      * 实现优惠卷的下单
@@ -53,16 +57,37 @@ public class VocherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vouc
             return Result.fail("库存不足!");
         }
         Long userId = UserHolder.getUser().getId();
+        // -------------实现一人一单(单机模式)---------------
         // 在实现一人一单时需要保证线程安全，且只能使用悲观锁，所以将代码进行封装，并使用synchronized
         // 给用户ID加锁即可
         // 由于toString底层是创建一个新对象,即使是同一个userId使用该方法后产生的对象也是不一样的
         // 所以使用intern方法，保证userId一样时，使用的都是同一个对象
-        synchronized (userId.toString().intern()) {
-            // 如果直接使用createVoucherOrder，调用的目标对象的createVoucherOrder方法,并不是代理对象的
-            // 事务并不会生效(事务的生效是Spring对当前类做了动态代理,然后使用代理对象进行事务处理)
+//        synchronized (userId.toString().intern()) {
+//            // 如果直接使用createVoucherOrder，调用的目标对象的createVoucherOrder方法,并不是代理对象的
+//            // 事务并不会生效(事务的生效是Spring对当前类做了动态代理,然后使用代理对象进行事务处理)
+//            IVoucherOrderService proxy = (IVoucherOrderService) AopContext.currentProxy();
+//            return proxy.createVoucherOrder(voucherId);
+//        }
+        // -------------实现一人一单(单机模式)---------------
+
+        // -------------实现一人一单(集群模式)---------------
+        // 创建锁对象:对于一个用户的下单(不管是单机还是集群)才需要上锁,所以设置的key需要加上userId
+        SimpleRedisLock lock = new SimpleRedisLock("order:" + userId, stringRedisTemplate);
+        // 获取锁
+        boolean isLock = lock.tryLock(1200);
+        // 获取锁失败
+        if (!isLock) {
+            return Result.fail("一个用户不允许重复下单");
+        }
+        try {
             IVoucherOrderService proxy = (IVoucherOrderService) AopContext.currentProxy();
             return proxy.createVoucherOrder(voucherId);
+        } finally {
+            // 释放锁
+            lock.unlock();
         }
+        // -------------实现一人一单(集群模式)---------------
+
     }
 
     @Transactional
