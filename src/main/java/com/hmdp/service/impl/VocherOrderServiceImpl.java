@@ -10,6 +10,9 @@ import com.hmdp.service.IVoucherOrderService;
 import com.hmdp.utils.RedisIdWorker;
 import com.hmdp.utils.SimpleRedisLock;
 import com.hmdp.utils.UserHolder;
+import org.redisson.Redisson;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.aop.framework.AopContext;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -33,6 +36,8 @@ public class VocherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vouc
     private RedisIdWorker redisIdWorker;
     @Resource
     private StringRedisTemplate stringRedisTemplate;
+    @Resource
+    private RedissonClient redissonClient;
 
     /**
      * 实现优惠卷的下单
@@ -72,9 +77,17 @@ public class VocherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vouc
 
         // -------------实现一人一单(集群模式)---------------
         // 创建锁对象:对于一个用户的下单(不管是单机还是集群)才需要上锁,所以设置的key需要加上userId
-        SimpleRedisLock lock = new SimpleRedisLock("order:" + userId, stringRedisTemplate);
+        // ---------------使用setnx方式---------------
+//        SimpleRedisLock lock = new SimpleRedisLock("order:" + userId, stringRedisTemplate);
         // 获取锁
-        boolean isLock = lock.tryLock(1200);
+//        boolean isLock = lock.tryLock(1200);
+        // ---------------使用setnx方式---------------
+
+        // --------------使用Redisson方式----------------
+        RLock lock = redissonClient.getLock("lock:order:" + userId);
+        boolean isLock = lock.tryLock();
+        // --------------使用Redisson方式----------------
+
         // 获取锁失败
         if (!isLock) {
             return Result.fail("一个用户不允许重复下单");
