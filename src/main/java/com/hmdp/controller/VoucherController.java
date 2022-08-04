@@ -27,7 +27,7 @@ public class VoucherController {
     }
 
     /**
-     * 新增秒杀券
+     * 新增秒杀券(优化后需要保存秒杀库存到Redis中)
      * @param voucher 优惠券信息，包含秒杀信息
      * @return 优惠券id
      */
