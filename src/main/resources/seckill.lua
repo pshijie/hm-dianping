@@ -9,6 +9,8 @@
 local voucherId = ARGV[1]
 -- 1.2 用户Id
 local userId = ARGV[2]
+-- 1.3 订单Id
+local orderId = ARGV[3]
 
 -- 2.数据key
 -- 2.1.库存key
@@ -31,4 +33,6 @@ end
 -- 3.3.上述判断都不满足声明用户未下过单,开始扣减库存并保存该用户到set集合中
 redis.call('incrby', stockKey, -1)
 redis.call('sadd', orderKey, userId)
+-- 3.4.发送消息到消息队列中
+redis.call('xadd', 'stream.orders', '*', 'userId', userId, 'voucherId', voucherId, 'id', orderId)
 return 0
