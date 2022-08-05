@@ -32,6 +32,8 @@ public class Blog implements Serializable {
      * 用户id
      */
     private Long userId;
+
+    // ----------blog表中没有的属性----------
     /**
      * 用户图标
      */
@@ -42,6 +44,12 @@ public class Blog implements Serializable {
      */
     @TableField(exist = false)
     private String name;
+    /**
+     * 当前blog是否被点过赞
+     */
+    @TableField(exist = false)
+    private Boolean isLike;
+    // ----------blog表中没有的属性----------
 
     /**
      * 标题

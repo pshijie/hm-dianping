@@ -17,6 +17,7 @@ import java.util.UUID;
 @RequestMapping("upload")
 public class UploadController {
 
+    // 在blog-edit页面中，一点击上传照片并选择图片后就会发送/upload/blog请求(不是点发布才发送请求)
     @PostMapping("blog")
     public Result uploadImage(@RequestParam("file") MultipartFile image) {
         try {
