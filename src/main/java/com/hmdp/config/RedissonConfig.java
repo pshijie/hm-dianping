@@ -17,7 +17,7 @@ public class RedissonConfig {
     @Bean
     public RedissonClient redissonClient() {
         Config config = new Config();
-        config.useSingleServer().setAddress("redis://xxxx");
+        config.useSingleServer().setAddress("xxxx");
         return Redisson.create(config);
     }
 }
