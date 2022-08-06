@@ -18,4 +18,9 @@ public interface IBlogService extends IService<Blog> {
     // 查询对当前blog点过赞点过赞的用户
     Result queryBlogLikes(Long id);
 
+    // 登录用户保存探店blog
+    Result saveBlog(Blog blog);
+
+    // 返回登录用户的关注用户发表的blog
+    Result queryBlogOfFollow(Long max, Integer offset);
 }
