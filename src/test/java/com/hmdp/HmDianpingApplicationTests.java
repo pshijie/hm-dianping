@@ -45,7 +45,7 @@ class HmDianpingApplicationTests {
         // 每个线程执行100次
         Runnable task = () -> {
             for (int i = 0; i < 100; i++) {
-                long id = redisIdWorker.nextId("oreder");
+                long id = redisIdWorker.nextId("order");
                 System.out.println(id);
             }
             latch.countDown();
@@ -65,7 +65,6 @@ class HmDianpingApplicationTests {
 //        shopService.saveShop2Redis(1L, 10L);
         Shop shop = shopService.getById(1L);
         cacheClient.setWithLogicalExpire(CACHE_SHOP_KEY + 1L, shop, 10L, TimeUnit.SECONDS);
-
     }
 
 

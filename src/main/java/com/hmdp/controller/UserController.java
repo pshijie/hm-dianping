@@ -53,7 +53,7 @@ public class UserController {
      */
     @PostMapping("/logout")
     public Result logout(){
-        // TODO 实现登出功能
+        // 在前端页面中已经实现
         return Result.fail("功能未完成");
     }
 
@@ -91,4 +91,15 @@ public class UserController {
         return Result.ok(userDTO);
     }
 
+    // 用户签到
+    @PostMapping("/sign")
+    public Result sign(){
+        return userService.sign();
+    }
+
+    // 统计用户连续签到天数
+    @GetMapping("/sign/count")
+    public Result signCount(){
+        return userService.signCount();
+    }
 }

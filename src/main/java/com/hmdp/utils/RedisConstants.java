@@ -26,4 +26,7 @@ public class RedisConstants {
 
     public static final Double RADIUS = Double.valueOf(5000);
 
+    public static final String USER_SIGN_KEY = "sign:";
+
+
 }
