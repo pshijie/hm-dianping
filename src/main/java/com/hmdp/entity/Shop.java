@@ -96,6 +96,7 @@ public class Shop implements Serializable {
     private LocalDateTime updateTime;
 
 
+    // tb_shop表中不存在的字段，由于保存当前店铺对于查询点的距离
     @TableField(exist = false)
     private Double distance;
 }
